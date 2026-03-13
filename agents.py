@@ -119,7 +119,7 @@ def market_sizer_node(state:OracleState):
     idea= state["structured_idea"]
     signals= state["market_signals"]
     response = model.with_structured_output(MarketSize).invoke([
-            {"role": "system", "content": "you are a ex-McKinsey analyst who does bottom-up math"},
+            {"role": "system", "content": "You are an ex-McKinsey analyst. Always return real dollar figures like '$4.2B' or '$850M'. Never return placeholder text like 'value' or 'N/A'."},
             {"role": "user",   "content": f"""
 Startup idea: {idea.value_proposition}
 Target user: {idea.target_user}
@@ -130,7 +130,12 @@ Market signals found:
 {signals.overall_demand}
 Trend: {signals.trend_direction}
 
-Calculate TAM, SAM, SOM with step by step reasoning.
+Calculate TAM, SAM, SOM using bottom-up math.
+- tam: Total Addressable Market as a dollar figure e.g. "$4.2B"
+- sam: Serviceable Addressable Market as a dollar figure e.g. "$850M"
+- som: Realistically obtainable in 3 years as a dollar figure e.g. "$12M"
+- reasoning: Step by step calculation with actual numbers and assumptions
+- confidence: high / medium / low
 """}
         ]
          
