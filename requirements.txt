@@ -1,9 +1,9 @@
+streamlit
 langchain
 langchain-community
 langchain-openai
 langgraph
-streamlit
 pydantic
 python-dotenv
-duckduckgo-search
+duckduckgo_search
 tavily-python
