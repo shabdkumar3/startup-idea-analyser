@@ -5,5 +5,6 @@ langchain-openai
 langgraph
 pydantic
 python-dotenv
-duckduckgo_search
+ddgs
+duckduckgo-search
 tavily-python
