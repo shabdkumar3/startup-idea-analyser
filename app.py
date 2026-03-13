@@ -196,7 +196,9 @@ if st.button("⚡ Analyze with Oracle", type="primary", use_container_width=True
             st.error(f"Pipeline error: {error_holder['err']}")
             st.stop()
 
-        progress_box.empty()
+        done_html = "".join([f'<div class="pipeline-step step-done">✅ {log}</div>'
+                             for log in result_holder["data"].get("agent_logs", [])])
+        progress_box.markdown(done_html, unsafe_allow_html=True)
         st.session_state.result = result_holder["data"]
         st.success("✅ Analysis complete!")
 
@@ -298,15 +300,12 @@ if st.session_state.result:
                 (c2,"SAM — Serviceable","sam","#60a5fa"),
                 (c3,"SOM — Obtainable (3yr)","som","#34d399"),
             ]:
-                raw_val = get(market_size, key)
-                display_val = "—" if str(raw_val).strip().lower() in ["value","n/a","none","","null","tbd","unknown"] else raw_val
                 col.markdown(f"""
                 <div class="info-card" style="border-color:{clr}55; text-align:center;">
-                  <h4>{lbl}</h4><p style="color:{clr}; font-size:22px;">{display_val}</p>
+                  <h4>{lbl}</h4><p style="color:{clr}; font-size:22px;">{get(market_size,key)}</p>
                 </div>""", unsafe_allow_html=True)
 
-            reasoning_raw = get(market_size, "reasoning", default="")
-            reasoning = "" if str(reasoning_raw).strip().lower() in ["value","n/a","none","","null"] else reasoning_raw
+            reasoning  = get(market_size, "reasoning", default="")
             confidence = get(market_size, "confidence", default="")
             if reasoning:
                 conf_c = {"high":"#10b981","medium":"#f59e0b","low":"#ef4444"}.get(str(confidence).lower(),"#94a3b8")
@@ -345,18 +344,14 @@ if st.session_state.result:
                 def clean_moat_text(text):
                     """Convert raw single-word model values to readable sentences"""
                     mapping = {
-                        "low":                  "Minimal — easy for users to switch away",
-                        "low_moderate":         "Below average — some friction but not enough",
-                        "medium_low":           "Below average — some friction but not enough",
-                        "moderate":             "Moderate — some friction exists for users",
-                        "medium":               "Moderate — some friction exists for users",
-                        "medium_high":          "Above average — meaningful barriers exist",
-                        "medium_high_potential":"Above average — strong potential with scale",
-                        "high":                 "Strong — users face real costs to leave",
-                        "high_potential":       "High potential — barriers grow with scale",
-                        "none":                 "None — users can switch freely at any time",
-                        "yes":                  "Present — grows stronger with more users",
-                        "no":                   "Absent — no network effects observed",
+                        "low":          "Minimal — easy for users to switch away",
+                        "low_moderate": "Below average — some friction but not enough",
+                        "moderate":     "Moderate — some friction exists for users",
+                        "medium":       "Moderate — some friction exists for users",
+                        "high":         "Strong — users face real costs to leave",
+                        "none":         "None — users can switch freely at any time",
+                        "yes":          "Present — grows stronger with more users",
+                        "no":           "Absent — no network effects observed",
                     }
                     cleaned = str(text).strip().lower().replace(" ", "_")
                     return mapping.get(cleaned, str(text))  # fallback to original if not matched
@@ -365,9 +360,9 @@ if st.session_state.result:
                     display_text = clean_moat_text(text)
                     t = str(text).strip().lower()
                     # Detect strength — check raw value first, then keywords in display text
-                    if t in ["high","strong","high_potential"] or (t.startswith("medium_high")) or any(w in t for w in ["strong","significant","deep"]):
+                    if t in ["high","strong"] or any(w in t for w in ["high","strong","significant","deep"]):
                         strength_lbl, s_clr = "HIGH", "#10b981"
-                    elif t in ["low","none","no","medium_low","low_moderate"] or any(w in t for w in ["none","minimal","absent"]):
+                    elif t in ["low","none","no"] or any(w in t for w in ["low","none","minimal","absent","no "]):
                         strength_lbl, s_clr = "LOW", "#ef4444"
                     else:
                         strength_lbl, s_clr = "MEDIUM", "#f59e0b"
