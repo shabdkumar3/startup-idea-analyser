@@ -3,9 +3,9 @@ import streamlit as st
 
 st.set_page_config(page_title="Startup Oracle", page_icon="🔮", layout="wide")
 
-# ═══════════════════════════════════════════════
+
 #  GLOBAL CSS
-# ═══════════════════════════════════════════════
+
 st.markdown("""
 <style>
 body { font-family: 'Inter', sans-serif; }
@@ -99,9 +99,7 @@ body { font-family: 'Inter', sans-serif; }
 """, unsafe_allow_html=True)
 
 
-# ═══════════════════════════════════════════════
 #  HELPERS
-# ═══════════════════════════════════════════════
 def get(obj, *keys, default="N/A"):
     for key in keys:
         if obj is None: return default
@@ -137,9 +135,7 @@ NODE_MESSAGES = {
 }
 
 
-# ═══════════════════════════════════════════════
 #  HEADER
-# ═══════════════════════════════════════════════
 if "result" not in st.session_state:
     st.session_state.result = None
 
@@ -203,9 +199,7 @@ if st.button("⚡ Analyze with Oracle", type="primary", use_container_width=True
         st.success("✅ Analysis complete!")
 
 
-# ═══════════════════════════════════════════════
 #  RESULTS
-# ═══════════════════════════════════════════════
 if st.session_state.result:
     r = st.session_state.result
 
@@ -287,7 +281,7 @@ if st.session_state.result:
 
     st.divider()
 
-    # ═════════ TABS ═════════
+    # TABS 
     tabs = st.tabs(["📈 Market", "⚔️ Competitors", "💀 Graveyard", "😤 User Pain", "🐂🐻 Debate", "🚀 MVP", "📝 Full Report"])
 
     # TAB 0 — Market
