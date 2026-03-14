@@ -131,7 +131,7 @@ NODE_MESSAGES = {
     "bearish":     "🐻 Building bear case",
     "verdict":     "⚖️ Judge is deciding",
     "mvp":         "🚀 Planning MVP",
-    "report":      "📝 Writing final report",
+    "report":      "📝 Writing final report (Creating report may take 4-5 mins)",
 }
 
 
@@ -144,7 +144,7 @@ st.markdown("""
   <div style="font-size:52px;">🔮</div>
   <div style="font-size:38px; font-weight:900; background:linear-gradient(135deg,#a78bfa,#60a5fa);
        -webkit-background-clip:text; -webkit-text-fill-color:transparent;">STARTUP ORACLE</div>
-  <div style="color:#6b7280; font-size:15px; margin-top:4px;">Give me your startup idea — I'll tell you if it'll live or die.</div>
+  <div style="color:#6b7280; font-size:15px; margin-top:4px;">Give me your startup idea — I'll tell you if it'll live or die.\n Created by Shabd Kumar(IIT Delhi)</div>
 </div>
 """, unsafe_allow_html=True)
 st.divider()
