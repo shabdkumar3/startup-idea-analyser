@@ -16,22 +16,29 @@ model = ChatOpenAI(
     max_retries=2,
 )
 
-# ── Helper: replaces model.with_structured_output(Schema).invoke(messages) ────
-# NVIDIA NIM rejects nested JSON schemas ($defs/$ref). Instead we prompt the
-# model to return plain JSON and parse + validate it ourselves.
-def invoke_structured(schema_class, messages):
-    messages = [dict(m) for m in messages]          # shallow copy so we don't mutate
+def _flat_schema_description(schema_class) -> str:
+    """Build a plain-English field list from Pydantic model — no $defs, no $ref."""
+    lines = [f"Return a JSON object with these fields:"]
+    for field_name, field_info in schema_class.model_fields.items():
+        annotation = field_info.annotation
+        desc = field_info.description or ""
+        try:
+            type_str = annotation.__name__
+        except AttributeError:
+            type_str = str(annotation).replace("typing.", "")
+        lines.append(f'  "{field_name}": ({type_str}) {desc}')
+    return "\n".join(lines)
 
-    # Append the expected JSON structure to the last user message
-    schema = schema_class.model_json_schema()
-    schema_str = json.dumps(schema, indent=2)
+def invoke_structured(schema_class, messages):
+    messages = [dict(m) for m in messages]
+
+    field_desc = _flat_schema_description(schema_class)
     messages[-1]["content"] += (
         f"\n\nYou MUST respond with ONLY a valid JSON object. "
-        f"No markdown fences, no explanation, just raw JSON.\n"
-        f"JSON schema to follow:\n{schema_str}"
+        f"No markdown fences, no explanation, no extra text — raw JSON only.\n"
+        f"{field_desc}"
     )
 
-    # Tell the system message to return JSON only
     for m in messages:
         if m.get("role") == "system":
             m["content"] += " Always respond with raw JSON only — no markdown, no prose."
@@ -40,12 +47,10 @@ def invoke_structured(schema_class, messages):
     res = model.invoke(messages)
     text = res.content.strip()
 
-    # Strip markdown fences if the model adds them anyway
     text = re.sub(r"```json\s*", "", text)
     text = re.sub(r"```\s*", "", text)
     text = text.strip()
 
-    # Find the first { or [ in case there's any leading text
     start = min(
         (text.find(c) for c in ["{", "["] if text.find(c) != -1),
         default=0
@@ -53,8 +58,6 @@ def invoke_structured(schema_class, messages):
     text = text[start:]
 
     return schema_class.model_validate(json.loads(text))
-# ──────────────────────────────────────────────────────────────────────────────
-
 
 def decompose_idea_node(state: OracleState) -> dict:
     raw_idea = state["raw_idea"]
@@ -68,7 +71,6 @@ def decompose_idea_node(state: OracleState) -> dict:
         "structured_idea": result,
         "agent_logs": ["Idea Decomposer — done"]
     }
-
 
 def market_research_node(state: OracleState):
     structured_idea = state["structured_idea"]
@@ -88,7 +90,6 @@ def market_research_node(state: OracleState):
         "agent_logs": ["Market Research — done"],
         "sources": [keywords, structured_idea.industry]
     }
-
 
 def competitor_intel_node(state: OracleState):
     structured_idea = state["structured_idea"]
@@ -122,14 +123,12 @@ def competitor_intel_node(state: OracleState):
         ]
     }
 
-
 def should_search_more(state: OracleState) -> str:
     competitors = state.get("competitors") or []
     attempts    = state.get("competitor_search_attempts", 0)
     if len(competitors) < 3 and attempts < 2:
         return "competitor_intel_node"
     return "graveyard_research_node"
-
 
 def graveyard_research_node(state: OracleState):
     structured_idea = state["structured_idea"]
@@ -160,7 +159,6 @@ def graveyard_research_node(state: OracleState):
         ]
     }
 
-
 def user_pain_miner_node(state: OracleState):
     structured_idea = state["structured_idea"]
     keywords = " ".join(structured_idea.keywords[:3])
@@ -189,7 +187,6 @@ def user_pain_miner_node(state: OracleState):
             f"{keywords} user frustrations reviews"
         ]
     }
-
 
 def market_sizer_node(state: OracleState):
     idea    = state["structured_idea"]
@@ -221,7 +218,6 @@ Calculate TAM, SAM, SOM using bottom-up math.
         "agent_logs": ["Market Size - generated"]
     }
 
-
 def moat_detector_node(state: OracleState):
     structured_idea = state["structured_idea"]
     user_pain       = state["user_pain"]
@@ -251,7 +247,6 @@ def moat_detector_node(state: OracleState):
         "agent_logs": ["Moat Detection — done"]
     }
 
-
 def bull_agent_node(state: OracleState):
     structured_idea = state["structured_idea"]
     market_signals  = state["market_signals"]
@@ -279,7 +274,6 @@ def bull_agent_node(state: OracleState):
         "bull_case": response,
         "agent_logs": ["Bull analysis added"]
     }
-
 
 def bear_agent_node(state: OracleState):
     competitors     = state["competitors"]
@@ -325,7 +319,6 @@ def bear_agent_node(state: OracleState):
         "agent_logs": ["Bear analysis added"]
     }
 
-
 def judge_verdict_node(state: OracleState):
     bear = state["bear_case"]
     bull = state["bull_case"]
@@ -339,7 +332,6 @@ def judge_verdict_node(state: OracleState):
         "judge_verdict": response,
         "agent_logs": ["Judge verdict added"]
     }
-
 
 def mvp_plan_node(state: OracleState):
     structured_idea = state["structured_idea"]
@@ -370,7 +362,6 @@ def mvp_plan_node(state: OracleState):
         "agent_logs": ["MVP plan added"]
     }
 
-
 def final_report_node(state: OracleState):
     structured_idea = state["structured_idea"]
     market_size     = state["market_size"]
@@ -399,7 +390,6 @@ def final_report_node(state: OracleState):
         "oracle_report": response,
         "agent_logs": ["Oracle report added"]
     }
-
 
 def sync_node(state: OracleState) -> dict:
     return {}
