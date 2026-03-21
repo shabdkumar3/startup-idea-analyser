@@ -1,4 +1,5 @@
 from graph import app
+from agents import _progress_queue, reset_progress
 import streamlit as st
 
 st.set_page_config(page_title="Startup Oracle", page_icon="🔮", layout="wide")
@@ -95,6 +96,7 @@ body { font-family: 'Inter', sans-serif; }
 .pipeline-step { padding:8px 14px; border-radius:8px; margin-bottom:6px; font-size:14px; }
 .step-done    { background:#052e16; color:#6ee7b7; }
 .step-running { background:#1e1b4b; color:#a5b4fc; }
+.step-pending { background:#1a1a2e; color:#4b5563; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -173,18 +175,42 @@ if st.button("⚡ Analyze with Oracle", type="primary", use_container_width=True
         thread = threading.Thread(target=run_pipeline)
         thread.start()
 
+        reset_progress()
         progress_box = st.empty()
-        node_keys  = list(NODE_MESSAGES.keys())
-        node_msgs  = list(NODE_MESSAGES.values())
+        running_nodes = set()
+        done_nodes = set()
+
+        def _drain_queue():
+            while True:
+                try:
+                    event = _progress_queue.get_nowait()
+                    kind, node = event.split(":", 1)
+                    if kind == "START":
+                        running_nodes.add(node)
+                    elif kind == "DONE":
+                        running_nodes.discard(node)
+                        done_nodes.add(node)
+                except Exception:
+                    break
+
+        def _render_progress():
+            html = ""
+            for key, msg in NODE_MESSAGES.items():
+                if key in done_nodes:
+                    html += f'<div class="pipeline-step step-done">✅ {msg}</div>'
+                elif key in running_nodes:
+                    html += f'<div class="pipeline-step step-running">⚡ {msg} ...</div>'
+                else:
+                    html += f'<div class="pipeline-step step-pending">○ {msg}</div>'
+            progress_box.markdown(html, unsafe_allow_html=True)
 
         while thread.is_alive():
-            logs_done = len(result_holder.get("data", {}).get("agent_logs", [])) if result_holder.get("data") else 0
-            step = min(logs_done, len(node_msgs) - 1)
-            html = "".join([f'<div class="pipeline-step step-done">✅ {node_msgs[i]}</div>' for i in range(step)])
-            if step < len(node_msgs):
-                html += f'<div class="pipeline-step step-running">⚡ {node_msgs[step]} ...</div>'
-            progress_box.markdown(html, unsafe_allow_html=True)
-            time.sleep(1)
+            _drain_queue()
+            _render_progress()
+            time.sleep(0.5)
+
+        _drain_queue()
+        _render_progress()
 
         thread.join()
 
