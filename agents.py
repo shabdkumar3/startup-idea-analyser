@@ -73,11 +73,7 @@ def decompose_idea_node(state: OracleState) -> dict:
 def market_research_node(state: OracleState):
     structured_idea = state["structured_idea"]
     keywords = " ".join(structured_idea.keywords[:3])
-    results = (
-        search_web(f"{keywords} market size 2026") +
-        search_web(f"{keywords} industry growth trends") +
-        search_web(f"{structured_idea.industry} market demand")
-    )
+    results = search_web(f"{keywords} {structured_idea.industry} market size growth trends 2026")
     response = invoke_structured(MarketSignals, [
         {"role": "system", "content": "You are a market research analyst."},
         {"role": "user",   "content": f"Search results:\n{results}\n\nExtract market signals."}
@@ -85,18 +81,14 @@ def market_research_node(state: OracleState):
     return {
         "market_signals": response,
         "agent_logs": ["Market Research — done"],
-        "sources": [keywords, structured_idea.industry]
+        "sources": [f"{keywords} {structured_idea.industry} market size growth trends 2026"]
     }
 
 def competitor_intel_node(state: OracleState):
     structured_idea = state["structured_idea"]
     keywords = " ".join(structured_idea.keywords[:3])
     industry = structured_idea.industry
-    competitors = (
-        search_web(f"best {industry} companies") +
-        search_web(f"{keywords} top startups 2026") +
-        search_web(f"{keywords} competitors alternatives")
-    )
+    competitors = search_web(f"{keywords} top competitors startups alternatives {industry}")
     response = invoke_structured(CompetitorList, [
         {"role": "system", "content": "Competitive intelligence analyst."},
         {"role": "user",   "content": (
@@ -111,11 +103,7 @@ def competitor_intel_node(state: OracleState):
         "competitors": response.competitors,
         "agent_logs": ["Competitors Identified"],
         "competitor_search_attempts": attempts + 1,
-        "sources": [
-            f"{keywords} top startups 2026",
-            f"{keywords} competitors alternatives",
-            f"best {industry} companies"
-        ]
+        "sources": [f"{keywords} top competitors startups alternatives {industry}"]
     }
 
 def should_search_more(state: OracleState) -> str:
@@ -129,11 +117,7 @@ def graveyard_research_node(state: OracleState):
     structured_idea = state["structured_idea"]
     keywords = " ".join(structured_idea.keywords[:3])
     industry = structured_idea.industry
-    summ = (
-        search_web(f"{keywords} startup failed why") +
-        search_web(f"{industry} startup graveyard lessons") +
-        search_web(f"failed {keywords} postmortem")
-    )
+    summ = search_web(f"failed {keywords} {industry} startup graveyard lessons postmortem")
     response = invoke_structured(DeadStartupList, [
         {"role": "system", "content": "Startup failure analyst."},
         {"role": "user",   "content": (
@@ -145,21 +129,13 @@ def graveyard_research_node(state: OracleState):
     return {
         "dead_startups": response.startups,
         "agent_logs": ["Graveyard Research — done"],
-        "sources": [
-            f"{keywords} startup failed why",
-            f"{industry} startup graveyard lessons",
-            f"failed {keywords} postmortem"
-        ]
+        "sources": [f"failed {keywords} {industry} startup graveyard lessons postmortem"]
     }
 
 def user_pain_miner_node(state: OracleState):
     structured_idea = state["structured_idea"]
     keywords = " ".join(structured_idea.keywords[:3])
-    d = (
-        search_web(f"site:reddit.com {structured_idea.core_problem} complaints") +
-        search_web(f"{structured_idea.target_user} pain points {keywords}") +
-        search_web(f"{keywords} user frustrations reviews")
-    )
+    d = search_web(f"{structured_idea.target_user} {keywords} complaints pain points frustrations")
     response = invoke_structured(UserPainInsights, [
         {"role": "system", "content": "You are a user insight analyst."},
         {"role": "user",   "content": f"Search results:\n{d}\n\nExtract user insights: complaints, quotes, willingness to pay, etc."}
@@ -167,11 +143,7 @@ def user_pain_miner_node(state: OracleState):
     return {
         "user_pain": response,
         "agent_logs": ["User Insights - generated"],
-        "sources": [
-            f"site:reddit.com {structured_idea.core_problem} complaints",
-            f"{structured_idea.target_user} pain points {keywords}",
-            f"{keywords} user frustrations reviews"
-        ]
+        "sources": [f"{structured_idea.target_user} {keywords} complaints pain points frustrations"]
     }
 
 def market_sizer_node(state: OracleState):

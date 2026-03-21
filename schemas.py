@@ -27,19 +27,19 @@ class StartupIdea(BaseModel):
 
 class Competitor(BaseModel):
     name:str = Field(description="Company Name")
-    product_type:str = Field(description="What do they sell")
-    pricing:str =Field(description="Pricing Model/range")
-    target_user:str= Field(description="who they serve")
-    strengths:list[str]=Field(description="Top 3 Stengths")
-    weaknesses: list[str]= Field(description="Top 3 weaknesses / gaps")
+    product_type:str = Field("Unknown", description="What do they sell")
+    pricing:str = Field("Unknown", description="Pricing Model/range")
+    target_user:str = Field("Unknown", description="who they serve")
+    strengths:list[str] = Field(default_factory=list, description="Top 3 Strengths")
+    weaknesses:list[str] = Field(default_factory=list, description="Top 3 weaknesses / gaps")
     funding:str=Field("Unknown",description="Funding Raised")
 
 
 class DeadStartup(BaseModel):
     name:str = Field(description="Startup Name")
-    what_they_did:str = Field(description="What was their idea?")
-    why_they_failed:str = Field(description="Root cause of failure")
-    lesson:str=Field(description="Key lesson for new founders")
+    what_they_did:str = Field("Unknown", description="What was their idea?")
+    why_they_failed:str = Field("Unknown", description="Root cause of failure")
+    lesson:str = Field("Unknown", description="Key lesson for new founders")
     year_died:str=Field("Unknown",description="Year they shut down")
 
 

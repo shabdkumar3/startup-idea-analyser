@@ -174,17 +174,17 @@ if st.button("⚡ Analyze with Oracle", type="primary", use_container_width=True
         thread.start()
 
         progress_box = st.empty()
-        node_msgs = list(NODE_MESSAGES.values())
-        step = 0
+        node_keys  = list(NODE_MESSAGES.keys())
+        node_msgs  = list(NODE_MESSAGES.values())
 
         while thread.is_alive():
+            logs_done = len(result_holder.get("data", {}).get("agent_logs", [])) if result_holder.get("data") else 0
+            step = min(logs_done, len(node_msgs) - 1)
             html = "".join([f'<div class="pipeline-step step-done">✅ {node_msgs[i]}</div>' for i in range(step)])
             if step < len(node_msgs):
                 html += f'<div class="pipeline-step step-running">⚡ {node_msgs[step]} ...</div>'
             progress_box.markdown(html, unsafe_allow_html=True)
-            time.sleep(3)
-            if step < len(node_msgs) - 1:
-                step += 1
+            time.sleep(1)
 
         thread.join()
 
