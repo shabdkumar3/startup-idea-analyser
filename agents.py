@@ -4,19 +4,21 @@ from langchain_openai import ChatOpenAI
 from config import NVIDIA_API_KEY, NVIDIA_BASE_URL, NVIDIA_MODEL
 import json, re, queue as _q, threading
 
-if not NVIDIA_API_KEY:
-    raise ValueError("Missing NVIDIA_API_KEY in .env")
 
-model = ChatOpenAI(
-    api_key=NVIDIA_API_KEY.strip(),
-    base_url=NVIDIA_BASE_URL.strip().rstrip("/"),
-    model=NVIDIA_MODEL.strip(),
-    temperature=0.2,
-    timeout=120,
-    max_retries=2,
-)
+def get_model():
+    if not NVIDIA_API_KEY:
+        raise ValueError("Missing NVIDIA_API_KEY (env + secrets checked)")
 
+    return ChatOpenAI(
+        api_key=NVIDIA_API_KEY.strip(),
+        base_url=NVIDIA_BASE_URL.strip().rstrip("/"),
+        model=NVIDIA_MODEL.strip(),
+        temperature=0.2,
+        timeout=120,
+        max_retries=2,
+    )
 
+model = get_model()
 
 _progress_queue = _q.Queue()
 
