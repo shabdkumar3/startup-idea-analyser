@@ -1,5 +1,6 @@
 from graph import app
 from agents import _progress_queue, reset_progress
+from config import NVIDIA_MODEL
 import streamlit as st
 
 st.set_page_config(page_title="Startup Oracle", page_icon="🔮", layout="wide")
@@ -150,6 +151,8 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 st.divider()
+
+st.caption(f"Model in use: `{NVIDIA_MODEL}`")
 
 idea = st.text_area("Describe your startup idea", height=80,
     placeholder="e.g. Uber for dogs | AI therapist for Gen Z | B2B SaaS for restaurant inventory")
