@@ -1,4 +1,5 @@
-from langchain_community.tools import DuckDuckGoSearchRun, TavilySearchResults
+from langchain_community.tools import DuckDuckGoSearchRun
+from langchain_tavily import TavilySearch
 from dotenv import load_dotenv
 import os
 
@@ -15,7 +16,7 @@ def _get_tavily():
         if not key:
             return None
         try:
-            _s_tavily = TavilySearchResults(max_results=3, tavily_api_key=key)
+            _s_tavily = TavilySearch(max_results=3, tavily_api_key=key)
         except Exception:
             return None
     return _s_tavily
