@@ -18,5 +18,5 @@ def get_secret(key, default=None):
 
 NVIDIA_API_KEY  = get_secret("NVIDIA_API_KEY")
 NVIDIA_BASE_URL = get_secret("NVIDIA_BASE_URL", "https://integrate.api.nvidia.com/v1")
-NVIDIA_MODEL    = get_secret("NVIDIA_MODEL", "nvidia/llama-3.3-nemotron-super-49b-v1")
+NVIDIA_MODEL    = get_secret("NVIDIA_MODEL", "minimaxai/minimax-m2.7")
 TAVILY_API_KEY  = get_secret("TAVILY_API_KEY")
