@@ -152,7 +152,33 @@ st.markdown("""
 """, unsafe_allow_html=True)
 st.divider()
 
-st.caption(f"Model in use: `{NVIDIA_MODEL}`")
+# ── Pre-flight model check ─────────────────────────────────────────────────────
+from agents import model as _llm
+from config import NVIDIA_API_KEY
+
+@st.cache_data(show_spinner=False)
+def _check_model(model_name: str, api_key_prefix: str):
+    """Tiny ping to verify the model is reachable. Returns (ok, error_msg)."""
+    try:
+        _llm.invoke([{"role": "user", "content": "ping"}])
+        return True, None
+    except Exception as e:
+        return False, str(e)
+
+with st.spinner("Checking model availability…"):
+    _ok, _err = _check_model(NVIDIA_MODEL, (NVIDIA_API_KEY or "")[:8])
+
+if not _ok:
+    st.error(
+        f"**Model `{NVIDIA_MODEL}` is not accessible on your API key.**\n\n"
+        f"Error: `{_err}`\n\n"
+        "**Fix:** Go to Streamlit Cloud → Settings → Secrets and update `NVIDIA_MODEL` "
+        "to a model your key can access. Browse available models at https://build.nvidia.com/models"
+    )
+    st.caption(f"Model in use: `{NVIDIA_MODEL}` ❌ (unreachable)")
+    st.stop()
+else:
+    st.caption(f"Model in use: `{NVIDIA_MODEL}` ✅")
 
 idea = st.text_area("Describe your startup idea", height=80,
     placeholder="e.g. Uber for dogs | AI therapist for Gen Z | B2B SaaS for restaurant inventory")
